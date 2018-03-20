@@ -1,5 +1,5 @@
 # jLMC
-*A Javascript port of "Little Man Computer", an archaic emulation and teaching effort.*
+*A Javascript port of "Little Man Computer", a historic emulation and teaching effort.*
 
 This is a Javascript port of the popular teaching program "Little Man Computer", which simulates a simple computer, using the CPU and RAM.
 If you wish to run an assembly script using this project, you can convert it using the compiler. See the steps below on advice of converting your assembly to opcodes.
