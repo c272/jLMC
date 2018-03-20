@@ -26,10 +26,30 @@ if (process.argv.length<3) {
 		console.log("LMC E01: Invalid file extension '"+fileext+"'.");
 	} else {
 		//EXT Valid, sending to interpreter.
-		interpreter();
+		interpreter(filename);
 	}
 }
 
-function interpreter() {
-	// Unfinished.
+function interpreter(filename) {
+	//Attempting to read file.
+	try {
+		fs.readFile(filename, 'utf8', function(err, data) {
+  			if (err) throw err;
+  			console.log("OK:  Loaded LMC file.");
+
+  			//Splitting data into separate lines.
+  			data = data.split("\r\n");
+  			
+  			//Splitting split data into addresses and commands.
+  			for (i in data) {
+  				data[i] = data[i].split(" ");
+  			}
+
+  			//Unfinished.
+		});
+	}
+	catch (err) {
+		console.log("LMC E02: Failure loading LMC file.");
+		process.exit(1);
+	}
 }
