@@ -64,37 +64,16 @@ function memload(filename) {
 	  					console.log("LMC EO4: Address out of range at line "+(i+1)+".");
 	  					process.exit(1);
 	  				} else {
-	  					//Valid, now checking Opcodes.
-	  					var opcode = data[i][1];
-	  					var validOp = false;
-	  					console.log(opcode.substring(0,1));
-
-	  					//Checking opcode substrings and operators.
-	  					if (opcode==901 || opcode==902) {
-	  						validOp = true;
-	  					} else if (opcode.length==3 && opcode.substring(0, 1)==5) {
-	  						validOp = true;
-	  					} else if (opcode.length==3 && opcode.substring(0, 1)==3) {
-	  						validOp = true;
-	  					} else if (opcode.length==3 && opcode.substring(0, 1)==1) {
-	  						validOp = true;
-	  					} else if (opcode.length==3 && opcode.substring(0, 1)==2) {
-	  						validOp = true;
-	  					} else if (opcode.length==3 && opcode.substring(0, 1)==7) {
-	  						validOp = true;
-	  					} else if (opcode.length==3 && opcode.substring(0, 1)==8) {
-	  						validOp = true;
-	  					} else if (opcode.length==3 && opcode.substring(0, 1)==6) {
-	  						validOp = true;
-	  					} 
-
-	  					//Final validation for a valid operator code.
-	  					if (validOp==false) {
-	  						console.log("LMC EO5: Invalid opcode at address "+dint+".");
-	  						process.exit(1);
+	  					//Checking operations are 3 long.
+	  					if (data[i][1].length==3) {
+	  						//Valid, loading to memory.
+	  						mem[dint] = data[i][1];
 	  					} else {
-	  						mem[dint] = data[i][1]; 
+	  						//Invalid length.
+	  						console.log("LMC EO5: Invalid opcode length, address "+i+".");
+	  						process.exit(1);
 	  					}
+	  			
 	  				}
 	  			}
   			}
@@ -117,21 +96,68 @@ function interpreter(s) {
 		//Check for optype from start address onward.
 		if (i>=s) {
 			var opcode = mem[i].substring(0,1);
+			var opadd = mem[i].substring(1);
+			var op = mem[i];
 
-			if (opcode==5) {
-				//load
-			} else if (opcode==3) {
-				//store
-			} else if (opcode==1) {
-				//add
-			} else if (opcode==2) {
-				//subtract
-			} else if (opcode==7) {
-				//branch if zero
-			} else if (opcode==8) {
-				//branch if zero or pos
-			} else if (opcode==6) {
-				//branch always
+			if (opcode==5 && op.length==3) {
+				//LOAD
+				//Set accumulator to value.
+				acc = mem[opadd];
+				console.log("Loaded VAL "+acc+" from location "+opadd+".");
+			} else if (opcode==3 && op.length==3) {
+				//STORE
+				//Set address value to ACC.
+				mem[opadd] = acc;
+				console.log("Saved VAL "+acc+" to location "+opadd+".");
+			} else if (opcode==1 && op.length==3) {
+				//ADD
+				//Add accumulator value to address.
+				acc+=mem[opadd];
+				console.log("Added VAL "+mem[opadd]+" to ACC.");
+			} else if (opcode==2 && op.length==3) {
+				//SUB
+				//Take address value from ACC.
+				acc-=mem[opadd];
+				console.log("Took VAL "+mem[opadd]+"from ACC.");
+			} else if (opcode==7 && op.length==3) {
+				//BIZ
+				//Branch if Zero
+				if (acc==0) {
+					i=mem[opadd];
+					console.log("PC set to VAL "+mem[opadd]+".");
+				} else {
+					console.log("BIZ failed, ACC not zero.");
+				}
+			} else if (opcode==8 && op.length==3) {
+				//BIZOP
+				//Branch if Zero or Positive
+				if (acc==0 || acc>=0 && op.length==3) {
+					i=mem[opadd];
+					console.log("PC set to VAL "+mem[opadd]+".");
+				} else {
+					console.log("BIZOP failed, ACC not zero or positive.");
+				}
+			} else if (opcode==6 && op.length==3) {
+				//BRA
+				//Branch Always
+				i=mem[opadd];
+				console.log("PC set to VAL "+mem[opadd]+".");
+			} else if (op==901 && op.length==3) {
+				//INP
+				//Taking input from user using prompt.
+
+			} else if (op==902 && op.length==3) {
+				//OUT
+				//Outputting to console.
+				console.log(acc);
+			} else if (op==000) {
+				//HLT
+				//Terminating for loop.
+				break;
+			} else {
+				//No command found, invalid injected code or before halt.
+				console.log("LMC EO6: Invalid operation at address "+i+", operation "+op+". Have you placed data before a halt?");
+				process.exit(1);
 			}
 		}
 	}
