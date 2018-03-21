@@ -1,5 +1,8 @@
 //Requiring correct modules.
 var fs = require('fs');
+//Setting version.
+var currentver = 1;
+var outer = this;
 
 //Creating all memory slots.
 var mem = [];
@@ -8,7 +11,7 @@ for (var i=0; i<100; i++) {
 }
 
 //Creating ACC, PC, IR, and AR.
-var acc = 000;
+var acc = 0;
 var pc = 0;
 var ir = 0;
 var ar = 0;
@@ -75,10 +78,21 @@ function memload(filename) {
 	  					}
 	  			
 	  				}
+	  			} else {
+	  				//Loading filename, versions.
+	  				outer.fname = data[0][2].replace("_", " ");
+	  				outer.version = data[0][3];
+	  				outer.compiledate = data[0][1];
 	  			}
   			}
 
-  			//All memory saved, continuing to interpreter. PC starting at zero.
+  			//All memory saved, checking version is not future.
+  			if (outer.version>currentver) {
+  				console.log("LMC EO8: File version ahead of interpreter, download latest source.");
+  				process.exit(1);
+  			}
+
+  			//File valid, interpreting.
   			interpreter(0);
 		});
 	}
@@ -91,18 +105,24 @@ function memload(filename) {
 //Interpreter function, processes opcodes and provides function.
 //Takes a starting address.
 function interpreter(s) {
+	//Printing header.
+	console.log(outer.fname+ " | "+outer.compiledate+" | LMCv"+outer.version);
+	console.log("--------------------");
+
 	//Looping through memory, checking for start address.
 	for (i in mem) {
 		//Check for optype from start address onward.
 		if (i>=s) {
-			var opcode = mem[i].substring(0,1);
-			var opadd = mem[i].substring(1);
+			var opcode = parseInt(mem[i].substring(0,1));
+			var opadd = parseInt(mem[i].substring(1));
 			var op = mem[i];
 
 			if (opcode==5 && op.length==3) {
 				//LOAD
 				//Set accumulator to value.
 				acc = mem[opadd];
+				//Sanitizing.
+				acc = parseInt(acc);
 				console.log("Loaded VAL "+acc+" from location "+opadd+".");
 			} else if (opcode==3 && op.length==3) {
 				//STORE
@@ -112,18 +132,22 @@ function interpreter(s) {
 			} else if (opcode==1 && op.length==3) {
 				//ADD
 				//Add accumulator value to address.
-				acc+=mem[opadd];
+				acc+=parseInt(mem[opadd]);
+				if (acc>999) {
+					console.log("LMC EO7: Accumulator overflow, val>999.");
+					process.exit(1);
+				}
 				console.log("Added VAL "+mem[opadd]+" to ACC.");
 			} else if (opcode==2 && op.length==3) {
 				//SUB
 				//Take address value from ACC.
-				acc-=mem[opadd];
-				console.log("Took VAL "+mem[opadd]+"from ACC.");
+				acc-=parseInt(mem[opadd]);
+				console.log("Took VAL "+mem[opadd]+" from ACC.");
 			} else if (opcode==7 && op.length==3) {
 				//BIZ
 				//Branch if Zero
 				if (acc==0) {
-					i=mem[opadd];
+					i=parseInt(mem[opadd]);
 					console.log("PC set to VAL "+mem[opadd]+".");
 				} else {
 					console.log("BIZ failed, ACC not zero.");
@@ -132,7 +156,7 @@ function interpreter(s) {
 				//BIZOP
 				//Branch if Zero or Positive
 				if (acc==0 || acc>=0 && op.length==3) {
-					i=mem[opadd];
+					i=parseInt(mem[opadd]);
 					console.log("PC set to VAL "+mem[opadd]+".");
 				} else {
 					console.log("BIZOP failed, ACC not zero or positive.");
@@ -140,7 +164,7 @@ function interpreter(s) {
 			} else if (opcode==6 && op.length==3) {
 				//BRA
 				//Branch Always
-				i=mem[opadd];
+				i=parseInt(mem[opadd]);
 				console.log("PC set to VAL "+mem[opadd]+".");
 			} else if (op==901 && op.length==3) {
 				//INP
@@ -149,10 +173,11 @@ function interpreter(s) {
 			} else if (op==902 && op.length==3) {
 				//OUT
 				//Outputting to console.
-				console.log(acc);
+				console.log("OUTPUT: "+acc);
 			} else if (op==000) {
 				//HLT
 				//Terminating for loop.
+				console.log("EOF, halting...");
 				break;
 			} else {
 				//No command found, invalid injected code or before halt.
