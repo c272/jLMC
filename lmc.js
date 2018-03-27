@@ -18,7 +18,7 @@ var ar = 0;
 
 //Reading from file.
 if (process.argv.length<3) {
-	console.log("LMC E00: Usage is "+process.argv[1]+" [filename].lmc");
+	console.log("LMC E00: Usage is "+process.argv[1]+" [filename].lms");
 	process.exit(1);
 } else {
 	//Checking file extension validity.
@@ -26,8 +26,9 @@ if (process.argv.length<3) {
 	var validfile = false;
 	var fileext = filename.substring(filename.length-4);
 
-	if (fileext!=".lmc") {
+	if (fileext!=".lms") {
 		console.log("LMC E01: Invalid file extension '"+fileext+"'.");
+		process.exit(1);
 	} else {
 		//EXT Valid, sending to memory loader.
 		memload(filename);
@@ -68,6 +69,7 @@ function memload(filename) {
 	  					process.exit(1);
 	  				} else {
 	  					//Checking operations are 3 long.
+	  					console.log(data[i]);
 	  					if (data[i][1].length==3) {
 	  						//Valid, loading to memory.
 	  						mem[dint] = data[i][1];
@@ -106,6 +108,7 @@ function memload(filename) {
 //Takes a starting address.
 function interpreter(s) {
 	//Printing header.
+	console.log(" ");
 	console.log(outer.fname+ " | "+outer.compiledate+" | LMCv"+outer.version);
 	console.log("--------------------");
 
